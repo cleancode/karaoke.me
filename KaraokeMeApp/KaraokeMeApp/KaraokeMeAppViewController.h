@@ -8,8 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
+@class MBProgressHUD;
 @interface KaraokeMeAppViewController : UIViewController {
     IBOutlet UITextField *searchView;
+    MBProgressHUD *HUD;
 }
 
 @property(nonatomic, retain)UITextField *searchView;
