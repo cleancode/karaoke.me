@@ -11,26 +11,69 @@
 #import "EGOImageView.h"
 #import "EGOImageButton.h"
 #import "AudioStreamer.h"
+#import "MBProgressHUD.h"
 
 
 @implementation KaraokeMeViewController
-@synthesize coverView,lyricsView;
+@synthesize coverView,lyricsView, songData;
 
+-(void)enableNetworkActivity{
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+    UIWindow *window = [UIApplication sharedApplication].keyWindow;
+    HUD = [[MBProgressHUD alloc] initWithWindow:window];
+    [window addSubview:HUD];
+    HUD.labelText = @"Loading...";
+    [HUD show:YES];
+}
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
+-(void)disableNetworkActivity{
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+    [HUD hide:YES];
+    [HUD removeFromSuperview];
+    [HUD release];
+    HUD = nil;
+}
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil{
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        // Custom initialization
+        timerArray = [[NSMutableArray array] retain];
     }
     return self;
 }
 
-- (void)dealloc
-{
+-(void)killTimer:(NSTimer*)timer {
+    if (timerArray != nil) {
+        [timerArray removeObject:timer];
+        [timer invalidate];
+    }
+}
+
+// A method to kill all existing timers:
+-(void)killAllTimers {
+    NSMutableArray *theTimers = timerArray;
+    timerArray = nil;
+    [theTimers makeObjectsPerformSelector:@selector(invalidate)];
+    [theTimers removeAllObjects];
+    timerArray = theTimers;
+}
+
+- (void)dealloc{
+    [self killAllTimers];
+    [timerArray release];
+    
     [coverView release];
     [lyricsView release];
+    [songData release];
     [super dealloc];
+}
+// A method to save a timer
+-(void)storeTimer:(NSTimer*)timer {
+    if (timerArray != nil) {
+        [timerArray addObject:timer];
+    } else {
+        NSLog(@"I hope you never see this message!");
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -50,6 +93,7 @@
 }
 
 -(void)start{
+    [self enableNetworkActivity];
     [streamer start];
     
     [[NSNotificationCenter defaultCenter]
@@ -59,15 +103,65 @@
      object:streamer];
 }
 
+- (void)showWord:(NSTimer *)timer {
+    NSDictionary *userInfo = [timer userInfo];
+    NSString *word = [userInfo objectForKey:@"word"];
+    lyricsView.text = word;
+    
+    [self killTimer:timer];
+    [userInfo release];
+}
+
+
+-(void)startWordsTiming{
+    NSDictionary *lyrics = [self.songData objectForKey:@"lyrics"];
+    
+    int lineCounter = 0;
+    for (NSArray *line in lyrics) {
+        int wordCounter = 0;
+        for (NSDictionary *pair in line) {
+            NSString *word = [pair objectForKey:@"word"];
+            NSNumber *timing = [pair objectForKey:@"timing"];
+ 
+            NSLog(@"%@", word);
+            NSLog(@"%@", timing);
+            
+            NSMutableDictionary *userInfo = [[NSMutableDictionary alloc]init];
+            [userInfo setObject:word forKey:@"word"];
+            
+            [self storeTimer:
+            [NSTimer scheduledTimerWithTimeInterval:[timing floatValue]/1000
+                                             target:self
+                                           selector:@selector(showWord:)
+                                           userInfo:userInfo
+                                            repeats:NO]];
+            
+            ++wordCounter;
+        }
+        ++lineCounter;
+    }
+    
+}
+
+-(void)stopWordsTiming{
+    [self killAllTimers];
+    
+}
+
 - (void)playbackStateChanged:(NSNotification *)aNotification{
     if ([streamer isPlaying]){
-        NSLog(@"PLAYING");
+        [self disableNetworkActivity];
+        [self startWordsTiming];
 	} else if ([streamer isIdle]) {
-        NSLog(@"STOP");
+        [self stopWordsTiming];
+        [self disableNetworkActivity];
     }
 }
 
 -(void)stop{
+    [self enableNetworkActivity];
+
+    [self killAllTimers];
     [streamer stop];
 }
 
@@ -130,6 +224,7 @@
 
 -(void) received:(id)data from:(id)sender{
     NSLog(@"%@", data);
+    self.songData = data;
     [self showCoverFrom: data];
     
     [self createStreamerWithSongFrom: data];

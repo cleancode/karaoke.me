@@ -8,6 +8,7 @@
 
 #import "KaraokeMeAppViewController.h"
 #import "KaraokeMeViewController.h"
+#import "MBProgressHUD.h"
 
 @implementation KaraokeMeAppViewController
 
