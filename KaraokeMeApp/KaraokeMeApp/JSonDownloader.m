@@ -64,7 +64,16 @@
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSMutableData *data = [NSMutableData dataWithData:[prefs dataForKey:@"LASTDATA"]];
     self.responseData = data;
-    
+    	NSString *detailMessage = [[NSString alloc]
+    							   initWithFormat:@"Connection failed: %@",
+    							   [error description]];
+    	
+    	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Failure" message:detailMessage delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    	
+    	[alert show];
+    	[alert release];
+    	[detailMessage release];
+  
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {

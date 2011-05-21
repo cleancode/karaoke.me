@@ -12,6 +12,7 @@
 
 @class AudioStreamer;
 @class MBProgressHUD;
+@class OHAttributedLabel;
 @interface KaraokeMeViewController : UIViewController {
     IBOutlet UIImageView *coverView;
     IBOutlet UILabel *lyricsView;
@@ -19,6 +20,7 @@
     NSDictionary *songData;
     NSMutableArray *timerArray;
     MBProgressHUD *HUD;
+    OHAttributedLabel *label;
 }
 
 @property(nonatomic,retain)UIImageView *coverView;

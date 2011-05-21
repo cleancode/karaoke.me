@@ -13,7 +13,8 @@
 #import "AudioStreamer.h"
 #import "MBProgressHUD.h"
 #import "NSArray-Blocks.h"
-
+#import "OHAttributedLabel.h"
+#import "NSAttributedString+Attributes.h"
 
 @implementation KaraokeMeViewController
 @synthesize coverView,lyricsView, songData;
@@ -114,6 +115,9 @@
     NSNumber *lineCounter = [userInfo objectForKey:@"lineCounter"];
     NSNumber *wordCounter = [userInfo objectForKey:@"wordCounter"];
 
+    NSLog(@"lineCounter %@", lineCounter);
+    NSLog(@"wordCounter %@", wordCounter);
+    
     NSArray *linePairs = [lyrics objectAtIndex:[lineCounter intValue]];
     NSArray *wordsOfLine = [linePairs map:^(id pair){
         return [pair objectForKey:@"word"]; 
@@ -121,13 +125,34 @@
     
     NSString *line = [wordsOfLine componentsJoinedByString:@" "];
     
+    //-------------------------------    
+    NSMutableAttributedString* attrStr = [NSMutableAttributedString attributedStringWithString:line];
+    
+	[attrStr setFont:[UIFont fontWithName:@"Helvetica-Bold" size:20]];
+    
+    NSArray *firstPart = [wordsOfLine subarrayWithRange:NSMakeRange(0, [wordCounter intValue])];
+    
+    NSString *firstPartString = [firstPart componentsJoinedByString:@" "];
+    int startOfWord = [firstPartString length];
+    
+	[attrStr setTextColor:[UIColor blueColor] 
+                    range:NSMakeRange(startOfWord,[word length]+1)];
+	[attrStr setFont:[UIFont fontWithName:@"Helvetica-Bold" size:20] 
+               range:NSMakeRange(startOfWord,[word length]+1)];
+    label.backgroundColor = [UIColor clearColor];
+	label.attributedText = attrStr;
+    label.numberOfLines = 0;
+    label.centerVertically = YES;
+    
+    //-------------------------------
+    
+    
                      
-    lyricsView.text = line;
+//    lyricsView.text = line;
     
     [self killTimer:timer];
     [userInfo release];
 }
-
 
 -(void)startWordsTiming{
     NSDictionary *lyrics = [self.songData objectForKey:@"lyrics"];
@@ -253,12 +278,19 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.lyricsView.text = nil;
+    CGRect lyricsFrame = lyricsView.frame;
+    label = [[[OHAttributedLabel alloc] initWithFrame:lyricsFrame] autorelease];
+    
+    [self.view addSubview:label];
+
     // Do any additional setup after loading the view from its nib.
 }
 
 - (void)viewDidUnload
 {
     [self stop];
+    [label release];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
