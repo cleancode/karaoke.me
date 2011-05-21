@@ -17,4 +17,8 @@
 
 @property(nonatomic,retain)UIImageView *coverView;
 @property(nonatomic,retain)UILabel *lyricsView;
+
+-(void) received:(id)data from:(id)sender; 
+
+
 @end

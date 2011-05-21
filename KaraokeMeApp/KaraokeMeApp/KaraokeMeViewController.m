@@ -7,7 +7,9 @@
 //
 
 #import "KaraokeMeViewController.h"
+#import "JSonDownloader.h"
 
+#define DOMAIN @"http://50.56.29.133:3009"
 
 @implementation KaraokeMeViewController
 @synthesize coverView,lyricsView;
@@ -37,6 +39,21 @@
 }
 
 #pragma mark - View lifecycle
+
+-(void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    
+    [[JSonDownloader alloc]initWithDomain:DOMAIN url:@"/song" delegate:self];
+}
+
+-(void) received:(id)data from:(id)sender{
+    NSLog(@"%@", data);
+    
+    
+    
+    [sender release];
+}
+
 
 - (void)viewDidLoad
 {
