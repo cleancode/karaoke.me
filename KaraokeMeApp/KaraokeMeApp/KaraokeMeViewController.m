@@ -12,6 +12,7 @@
 #import "EGOImageButton.h"
 #import "AudioStreamer.h"
 #import "MBProgressHUD.h"
+#import "NSArray-Blocks.h"
 
 
 @implementation KaraokeMeViewController
@@ -104,9 +105,24 @@
 }
 
 - (void)showWord:(NSTimer *)timer {
+    
+
     NSDictionary *userInfo = [timer userInfo];
     NSString *word = [userInfo objectForKey:@"word"];
-    lyricsView.text = word;
+    
+    NSArray *lyrics = [self.songData objectForKey:@"lyrics"];
+    NSNumber *lineCounter = [userInfo objectForKey:@"lineCounter"];
+    NSNumber *wordCounter = [userInfo objectForKey:@"wordCounter"];
+
+    NSArray *linePairs = [lyrics objectAtIndex:[lineCounter intValue]];
+    NSArray *wordsOfLine = [linePairs map:^(id pair){
+        return [pair objectForKey:@"word"]; 
+    }];
+    
+    NSString *line = [wordsOfLine componentsJoinedByString:@" "];
+    
+                     
+    lyricsView.text = line;
     
     [self killTimer:timer];
     [userInfo release];
@@ -128,6 +144,8 @@
             
             NSMutableDictionary *userInfo = [[NSMutableDictionary alloc]init];
             [userInfo setObject:word forKey:@"word"];
+            [userInfo setObject:[NSNumber numberWithInt:wordCounter] forKey:@"wordCounter"];
+            [userInfo setObject:[NSNumber numberWithInt:lineCounter] forKey:@"lineCounter"];
             
             [self storeTimer:
             [NSTimer scheduledTimerWithTimeInterval:[timing floatValue]/1000
