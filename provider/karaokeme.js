@@ -373,8 +373,8 @@ function cacheResourceFor(song, resourceUrl, resourceExtensionType, callback) {
       cachePath = path.join(__dirname, resourcePath),
       cache = fs.createWriteStream(cachePath, {"flags": "w+"})
 
-  path.exists(cachePath, function(resourceExists) {
-    if (resourceExists) return callback(null, resourcePath)
+  // path.exists(cachePath, function(resourceExists) {
+    // if (resourceExists) return callback(null, resourcePath)
     http.get({ "host": resourceUrl.host, "path": resourceUrl.pathname }, function(response) {
       if (response.statusCode !== 200) {
         return callback("request for " + url.format(resourceUrl) + " went wrong: " + response.statusCode)
@@ -387,7 +387,7 @@ function cacheResourceFor(song, resourceUrl, resourceExtensionType, callback) {
         callback(null, resourcePath)
       })
     })
-  })
+  // })
 }
 
 function cacheResourcesFrom(song, callback) {
