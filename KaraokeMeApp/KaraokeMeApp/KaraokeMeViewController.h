@@ -8,11 +8,15 @@
 
 #import <UIKit/UIKit.h>
 
+#define SERVERDOMAIN @"http://50.56.29.133:3009"
 
+@class AudioStreamer;
 @interface KaraokeMeViewController : UIViewController {
     IBOutlet UIImageView *coverView;
     IBOutlet UILabel *lyricsView;
-    
+
+ 	AudioStreamer *streamer;
+   
 }
 
 @property(nonatomic,retain)UIImageView *coverView;

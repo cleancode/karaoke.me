@@ -8,11 +8,14 @@
 
 #import "KaraokeMeViewController.h"
 #import "JSonDownloader.h"
+#import "EGOImageView.h"
+#import "EGOImageButton.h"
+#import "AudioStreamer.h"
 
-#define DOMAIN @"http://50.56.29.133:3009"
 
 @implementation KaraokeMeViewController
 @synthesize coverView,lyricsView;
+
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -26,7 +29,7 @@
 - (void)dealloc
 {
     [coverView release];
-     [lyricsView release];
+    [lyricsView release];
     [super dealloc];
 }
 
@@ -43,14 +46,93 @@
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
     
-    [[JSonDownloader alloc]initWithDomain:DOMAIN url:@"/song" delegate:self];
+    [[JSonDownloader alloc]initWithDomain:SERVERDOMAIN url:@"/song" delegate:self];
+}
+
+-(void)start{
+    [streamer start];
+    
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self
+     selector:@selector(playbackStateChanged:)
+     name:ASStatusChangedNotification
+     object:streamer];
+}
+
+- (void)playbackStateChanged:(NSNotification *)aNotification{
+    if ([streamer isPlaying]){
+        NSLog(@"PLAYING");
+	} else if ([streamer isIdle]) {
+        NSLog(@"STOP");
+    }
+}
+
+-(void)stop{
+    [streamer stop];
+}
+
+-(void)buttonPressed:(id)sender{
+    if ([streamer isPlaying]) {
+        [self stop];
+    } else {
+        [self start];
+    }
+}
+
+- (void) showCoverFrom: (id) data  {
+    EGOImageButton *coverButton = [[[EGOImageButton alloc] 
+                                  initWithPlaceholderImage:[UIImage imageNamed:@"placeholder.png"]]autorelease];
+    [coverButton addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    
+    coverButton.frame = self.coverView.frame;
+    NSString *coverUrl = [data objectForKey:@"cover"];      
+    NSString *coverFullUrl = [NSString stringWithFormat:@"%@%@",SERVERDOMAIN, coverUrl];
+    coverButton.imageURL = [NSURL URLWithString:coverFullUrl];
+    
+    [self.view addSubview:coverButton];    
+}
+
+- (void)destroyStreamer
+{
+	if (streamer)
+	{
+		[streamer stop];
+		[streamer release];
+		streamer = nil;
+	}
+}
+
+- (void)createStreamer:(NSString *)songName{
+	if (streamer){
+		return;
+	}
+    
+	[self destroyStreamer];
+	
+	NSString *escapedValue =
+    [(NSString *)CFURLCreateStringByAddingPercentEscapes(
+                                                         nil,
+                                                         (CFStringRef)songName,
+                                                         NULL,
+                                                         NULL,
+                                                         kCFStringEncodingUTF8)
+     autorelease];
+    
+	NSURL *url = [NSURL URLWithString:escapedValue];
+	streamer = [[AudioStreamer alloc] initWithURL:url];
+}
+
+- (void) createStreamerWithSongFrom: (id) data  {
+    NSString *songUrl = [data objectForKey:@"audio"];  
+    NSString *songFullUrl = [NSString stringWithFormat:@"%@%@",SERVERDOMAIN, songUrl];
+    [self createStreamer:songFullUrl];
 }
 
 -(void) received:(id)data from:(id)sender{
     NSLog(@"%@", data);
+    [self showCoverFrom: data];
     
-    
-    
+    [self createStreamerWithSongFrom: data];
     [sender release];
 }
 
@@ -63,6 +145,7 @@
 
 - (void)viewDidUnload
 {
+    [self stop];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
