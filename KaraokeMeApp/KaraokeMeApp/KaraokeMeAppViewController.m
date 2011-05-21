@@ -22,8 +22,7 @@
 - (IBAction)search:(id)sender{
     KaraokeMeViewController *viewController = [[[KaraokeMeViewController alloc]init]autorelease];
     NSLog(@"%@", self.searchView.text);
-//	viewController.task = task;
-//    viewController.pomodoristManager = self.pomodoristManager;
+
 	[self.navigationController pushViewController:viewController animated:YES];
 }
 
