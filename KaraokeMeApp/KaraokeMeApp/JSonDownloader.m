@@ -30,7 +30,7 @@
         [self enableNetworkActivity];
         NSURL *feedUrl = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@",
                                                domain,url_]];
-        NSURLRequest *request = [NSURLRequest requestWithURL:feedUrl cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:3];
+        NSURLRequest *request = [NSURLRequest requestWithURL:feedUrl cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30];
         [[NSURLConnection alloc] initWithRequest:request delegate:self];
 
     }
@@ -82,7 +82,7 @@
     [prefs setObject:self.responseData forKey:@"LASTDATA"];
     [prefs synchronize];
     
-    NSString* aStr = [[NSString alloc] initWithData:self.responseData encoding:NSASCIIStringEncoding];
+    NSString* aStr = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
     [delegate received:[aStr JSONValue] from:self]; 
 
 	[self disableNetworkActivity];

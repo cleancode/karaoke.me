@@ -128,16 +128,17 @@
     //-------------------------------    
     NSMutableAttributedString* attrStr = [NSMutableAttributedString attributedStringWithString:line];
     
-	[attrStr setFont:[UIFont fontWithName:@"Helvetica-Bold" size:20]];
+	[attrStr setFont:[UIFont fontWithName:@"Helvetica-Bold" size:28]];
+	[attrStr setTextColor:[UIColor whiteColor]];
     
     NSArray *firstPart = [wordsOfLine subarrayWithRange:NSMakeRange(0, [wordCounter intValue])];
     
     NSString *firstPartString = [firstPart componentsJoinedByString:@" "];
     int startOfWord = [firstPartString length];
     
-	[attrStr setTextColor:[UIColor blueColor] 
+	[attrStr setTextColor:[UIColor greenColor] 
                     range:NSMakeRange(startOfWord,[word length]+1)];
-	[attrStr setFont:[UIFont fontWithName:@"Helvetica-Bold" size:20] 
+	[attrStr setFont:[UIFont fontWithName:@"Helvetica-Bold" size:28] 
                range:NSMakeRange(startOfWord,[word length]+1)];
     label.backgroundColor = [UIColor clearColor];
 	label.attributedText = attrStr;
@@ -173,7 +174,7 @@
             [userInfo setObject:[NSNumber numberWithInt:lineCounter] forKey:@"lineCounter"];
             
             [self storeTimer:
-            [NSTimer scheduledTimerWithTimeInterval:[timing floatValue]/1000
+            [NSTimer scheduledTimerWithTimeInterval:2.0+[timing floatValue]/1000
                                              target:self
                                            selector:@selector(showWord:)
                                            userInfo:userInfo
@@ -218,12 +219,12 @@
 
 - (void) showCoverFrom: (id) data  {
     EGOImageButton *coverButton = [[[EGOImageButton alloc] 
-                                  initWithPlaceholderImage:[UIImage imageNamed:@"placeholder.png"]]autorelease];
+                                  initWithPlaceholderImage:[UIImage imageNamed:@"CoverPlaceHolder.png"]]autorelease];
     [coverButton addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
     
     coverButton.frame = self.coverView.frame;
     NSString *coverUrl = [data objectForKey:@"cover"];      
-    NSString *coverFullUrl = [NSString stringWithFormat:@"%@%@",SERVERDOMAIN, coverUrl];
+    NSString *coverFullUrl = [NSString stringWithFormat:@"%@/%@",SERVERDOMAIN, coverUrl];
     coverButton.imageURL = [NSURL URLWithString:coverFullUrl];
     
     [self.view addSubview:coverButton];    
@@ -261,7 +262,7 @@
 
 - (void) createStreamerWithSongFrom: (id) data  {
     NSString *songUrl = [data objectForKey:@"audio"];  
-    NSString *songFullUrl = [NSString stringWithFormat:@"%@%@",SERVERDOMAIN, songUrl];
+    NSString *songFullUrl = [NSString stringWithFormat:@"%@/%@",SERVERDOMAIN, songUrl];
     [self createStreamer:songFullUrl];
 }
 
@@ -281,6 +282,9 @@
     self.lyricsView.text = nil;
     CGRect lyricsFrame = lyricsView.frame;
     label = [[[OHAttributedLabel alloc] initWithFrame:lyricsFrame] autorelease];
+    label.backgroundColor = [UIColor clearColor];
+    label.numberOfLines = 0;
+    label.centerVertically = YES;
     
     [self.view addSubview:label];
 
